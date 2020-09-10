@@ -19,8 +19,16 @@ PRACTICUM_TOKEN = os.getenv("PRACTICUM_TOKEN")
 TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
 CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
 
+bot = telegram.Bot(token=TELEGRAM_TOKEN)
+
 
 def parse_homework_status(homework):
+    if (
+            ('homework_name' or 'status') not in homework.keys() or
+            (homework['status'] not in ['rejected', 'approved'])
+        ):
+        logging.info(f'Error in response: {homework}')
+        return 'Error in response'
     homework_name = homework['homework_name']
     if homework['status'] == 'rejected':
         verdict = 'К сожалению в работе нашлись ошибки.'
@@ -35,32 +43,36 @@ def get_homework_statuses(current_timestamp):
     try:
         homework_statuses = requests.get(
             PRACTICUM_URL,
-            params={'from_date': current_timestamp},
+            params={
+                'from_date': current_timestamp
+                             if current_timestamp != None else 0
+                },
             headers=headers
             )
-    except:
-        logging.error('Homework status check error')
+    except Exception as ex:
+        logging.error(f'Status check error: {ex}')
+        send_message('Status check error')
     return homework_statuses.json()
 
 
 def send_message(message):
-    bot = telegram.Bot(token=TELEGRAM_TOKEN)
     return bot.send_message(chat_id=CHAT_ID, text=message)
 
 
 def main():
     current_timestamp = int(time.time())  # начальное значение timestamp
+    send_message('Running')
 
     while True:
         try:
             new_homework = get_homework_statuses(current_timestamp)
+            send_message('Polling')
             if new_homework.get('homeworks'):
                 send_message(parse_homework_status(new_homework.get('homeworks')[0]))
             current_timestamp = new_homework.get('current_date')  # обновить timestamp
-            time.sleep(300)  # опрашивать раз в пять минут
+            time.sleep(30)  # опрашивать раз в пять минут
 
         except Exception as e:
-            print(f'Бот упал с ошибкой: {e}')
             logging.error(f'Bot returned error: {e}')
             time.sleep(5)
             continue
