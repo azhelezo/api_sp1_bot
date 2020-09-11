@@ -23,10 +23,12 @@ bot = telegram.Bot(token=TELEGRAM_TOKEN)
 
 
 def parse_homework_status(homework):
+    checklist1 = ['homework_name', 'status']
+    checklist2 = ['rejected', 'approved']
     if (
-            ('homework_name' or 'status') not in homework or
-            (homework['status'] not in ['rejected', 'approved'])
-        ):
+            any(x not in homework for x in checklist1) or
+            (homework['status'] not in checklist2)
+            ):
         logging.info(f'Error in response: {homework}')
         return 'Error in response'
     homework_name = homework['homework_name']
