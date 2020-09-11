@@ -24,7 +24,7 @@ bot = telegram.Bot(token=TELEGRAM_TOKEN)
 
 def parse_homework_status(homework):
     if (
-            ('homework_name' or 'status') not in homework.keys() or
+            ('homework_name' or 'status') not in homework or
             (homework['status'] not in ['rejected', 'approved'])
         ):
         logging.info(f'Error in response: {homework}')
