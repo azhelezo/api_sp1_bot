@@ -1,2 +1,1 @@
-# api_sp1_bot
-api sp1 bot
+Simple Telegram bot polling Yandex.Praktikum API for homework status update.
